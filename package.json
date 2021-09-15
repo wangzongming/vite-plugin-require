@@ -1,0 +1,38 @@
+{
+	"name": "vite-plugin-require",
+	"version": "0.0.1",
+	"description": "can let vite projects to support require",
+	"author": "wangzongming",
+	"license": "MIT",
+	"repository": "https://github.com/wangzongming/vite-plugin-require",
+	"publishConfig": {
+		"registry": "https://npm.pkg.github.com/"
+	},
+	"main": "dist/index.js",
+	"engines": {
+		"node": ">=8",
+		"npm": ">=5"
+	},
+	"scripts": {
+		"build": "tsc -p ."
+	},
+	"peerDependencies": {
+		"vite": ">2.0.0-0",
+        "@babel/parser":"^7.15.6",
+        "@babel/traverse":"^7.15.4",
+        "@babel/generator":"^7.15.4"
+	},
+	"devDependencies": { 
+		"typescript":"^4.4.3",
+		"vite": "latest"
+	},
+	"files": [
+		"dist"
+	],
+	"keywords": [
+		"vite",
+		"vite-plugin",
+		"vite-plugin-require"
+	],
+	"dependencies": {}
+}
