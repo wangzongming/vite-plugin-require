@@ -4,7 +4,7 @@ import generate from "@babel/generator";
 import { Plugin } from "vite";
 
 export default function vitePluginRequire(opts?: { fileRegex?: RegExp }): Plugin {
-    const { fileRegex = /(.jsx?|.tsx?)$/ } = opts;
+    const { fileRegex = /(.jsx?|.tsx?)$/ } = (opts || {});
     return {
         name: "vite-plugin-require",
         async transform(code: string, id: string) {
