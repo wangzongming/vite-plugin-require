@@ -17,7 +17,7 @@ npm i vite-plugin-require | yarn add vite-plugin-require
 ## Usage
 
 ```ts
-import vitePluginRequire from "./vite-plugin-require";
+import vitePluginRequire from "vite-plugin-require";
 
 export default {
 	plugins: [
