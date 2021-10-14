@@ -4,15 +4,21 @@ import generate from "@babel/generator";
 import { Plugin } from "vite";
 
 export default function vitePluginRequire(opts?: { fileRegex?: RegExp; log?: (...arg: any[]) => void }): Plugin {
-	const { fileRegex = /(.jsx?|.tsx?)$/, log } = opts || {};
+	const { fileRegex = /(.jsx?|.tsx?|.vue)$/, log } = opts || {};
 	return {
 		name: "vite-plugin-require",
 		async transform(code: string, id: string) {
 			let newCode = code;
 			if (fileRegex.test(id)) {
+				let plugins: parser.ParserPlugin[] = ["jsx"];
+
+				if (/(.vue)$/.test(id)) {
+					plugins = [require("vue-loader")];
+				}
+
 				const ast = parser.parse(code, {
 					sourceType: "module",
-					plugins: ["jsx"],
+					plugins,
 				});
 				traverse(ast, {
 					enter(path: any) {
@@ -41,12 +47,12 @@ function getRequireFilePage(fileSrc: string, requireSrc: string, log?: (...arg: 
 	const requireSrcLoc = requireSrc.replace(/(\.\.\/|\.\/)/g, "");
 	const arrrs = fileSrc.split("/").reverse();
 	// The current file must be deleted
-	// arrrs.splice(0, parentLevel === 0 ? parentLevel + 1 : parentLevel); 
-    // All layers should be added by one
-	arrrs.splice(0, parentLevel + 1); 
+	// arrrs.splice(0, parentLevel === 0 ? parentLevel + 1 : parentLevel);
+	// All layers should be added by one
+	arrrs.splice(0, parentLevel + 1);
 
 	const reqPath = arrrs.reverse().join("/");
-	let reaSrc = `${reqPath}/${requireSrcLoc}`; 
+	let reaSrc = `${reqPath}/${requireSrcLoc}`;
 	// public String getPath, Remove the drive letter
 	reaSrc = reaSrc.replace(process.cwd().replace(/\\/g, "/"), "");
 

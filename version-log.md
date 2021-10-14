@@ -1,3 +1,8 @@
+
+##### 0.0.4
+
+    Support.vue file
+
 ##### 0.0.3
 
     Fixed ../ Case of miscalculation

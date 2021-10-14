@@ -24,7 +24,7 @@ export default {
 		vitePluginRequire({
 			// @fileRegex RegExp
 			// optional：default file processing rules are as follows
-			// fileRegex:/(.jsx?|.tsx?)$/
+			// fileRegex:/(.jsx?|.tsx?|.vue)$/
 		}),
 	],
 };
