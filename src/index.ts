@@ -23,12 +23,15 @@ export default function vitePluginRequire(opts?: { fileRegex?: RegExp; log?: (..
 				traverse(ast, {
 					enter(path: any) {
 						if (path.isIdentifier({ name: "require" })) {
-							path.node.name = "";
-							if (path.container.arguments[0]?.value) {
-								const realPath = getRequireFilePage(id, path.container.arguments[0].value, log);
-								path.container.arguments[0].value = realPath;
-								path.container.arguments[0].extra.raw = realPath;
-								path.container.arguments[0].extra.rawValue = realPath;
+							// log(path.container?.arguments);
+							if (path.container?.arguments?.[0]) {
+								path.node.name = "";
+								if (path.container?.arguments?.[0]?.value) {
+									const realPath = getRequireFilePage(id, path.container.arguments[0].value, log);
+									path.container.arguments[0].value = realPath;
+									path.container.arguments[0].extra.raw = realPath;
+									path.container.arguments[0].extra.rawValue = realPath;
+								} 
 							}
 						}
 					},
