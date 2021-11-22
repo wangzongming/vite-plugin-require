@@ -1,37 +1,40 @@
 import * as parser from "@babel/parser";
 import traverse from "@babel/traverse";
 import generate from "@babel/generator";
-import { Plugin } from "vite";
+import { Plugin } from "vite"; 
+import { importDeclaration, importDefaultSpecifier, stringLiteral, identifier } from "@babel/types";
 
 export default function vitePluginRequire(opts?: { fileRegex?: RegExp; log?: (...arg: any[]) => void }): Plugin {
 	const { fileRegex = /(.jsx?|.tsx?|.vue)$/, log } = opts || {};
 	return {
 		name: "vite-plugin-require",
 		async transform(code: string, id: string) {
+			//  Exclude files in node_modules
+			if (/\/node_modules\//g.test(id)) return;
 			let newCode = code;
 			if (fileRegex.test(id)) {
-				let plugins: parser.ParserPlugin[] = ["jsx"];
-
-				if (/(.vue)$/.test(id)) {
-					plugins = [require("vue-loader")];
-				}
-
+				let plugins: parser.ParserPlugin[] = /(.vue)$/.test(id) ? [require("vue-loader")] : ["jsx"];
 				const ast = parser.parse(code, {
 					sourceType: "module",
 					plugins,
 				});
 				traverse(ast, {
-					enter(path: any) {
+					enter(path) {
 						if (path.isIdentifier({ name: "require" })) {
-							// log(path.container?.arguments);
-							if (path.container?.arguments?.[0]) {
+							if ((path.container as Record<string, any>)?.arguments?.[0]) {
 								path.node.name = "";
-								if (path.container?.arguments?.[0]?.value) {
-									const realPath = getRequireFilePage(id, path.container.arguments[0].value, log);
-									path.container.arguments[0].value = realPath;
-									path.container.arguments[0].extra.raw = realPath;
-									path.container.arguments[0].extra.rawValue = realPath;
-								} 
+								if ((path.container as Record<string, any>)?.arguments?.[0]?.value) {
+									// Insert import at the top to pack resources when vite packs
+									const realPath = `vitePluginRequire_${new Date().getTime()}_${parseInt(Math.random() * 10000 + 100 + "")}`;
+									const importAst = importDeclaration(
+										[importDefaultSpecifier(identifier(realPath))],
+										stringLiteral((path.container as Record<string, any>)?.arguments?.[0]?.value as string)
+									); 
+									ast.program.body.unshift(importAst as any);  
+									(path.container as Record<string, any>).arguments[0].value = realPath;
+									(path.container as Record<string, any>).arguments[0].extra.raw = realPath;
+									(path.container as Record<string, any>).arguments[0].extra.rawValue = realPath;
+								}
 							}
 						}
 					},
@@ -42,22 +45,4 @@ export default function vitePluginRequire(opts?: { fileRegex?: RegExp; log?: (..
 			return { code: newCode };
 		},
 	};
-}
-
-function getRequireFilePage(fileSrc: string, requireSrc: string, log?: (...arg: any[]) => void) {
-	// Get up .. the number of, It could be a level
-	const parentLevel = requireSrc.match(/(\.\.\/)/g)?.length || 0;
-	const requireSrcLoc = requireSrc.replace(/(\.\.\/|\.\/)/g, "");
-	const arrrs = fileSrc.split("/").reverse();
-	// The current file must be deleted
-	// arrrs.splice(0, parentLevel === 0 ? parentLevel + 1 : parentLevel);
-	// All layers should be added by one
-	arrrs.splice(0, parentLevel + 1);
-
-	const reqPath = arrrs.reverse().join("/");
-	let reaSrc = `${reqPath}/${requireSrcLoc}`;
-	// public String getPath, Remove the drive letter
-	reaSrc = reaSrc.replace(process.cwd().replace(/\\/g, "/"), "");
-
-	return `"${reaSrc}"`;
-}
+} 

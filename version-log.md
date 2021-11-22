@@ -1,4 +1,9 @@
 
+##### 0.0.7
+
+    Fixed incorrect address after packing
+    Fix react project compiling files in node_modules folder
+
 ##### 0.0.5
 
     Fixed Other require keywords will be replaced

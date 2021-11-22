@@ -1,6 +1,6 @@
 {
 	"name": "vite-plugin-require",
-	"version": "0.0.5",
+	"version": "0.0.7",
 	"description": "can let vite projects to support require",
 	"author": "wangzongming",
 	"license": "MIT",
@@ -17,6 +17,7 @@
 		"@babel/generator": "^7.15.4",
 		"@babel/parser": "^7.15.6",
 		"@babel/traverse": "^7.15.4",
+		"@babel/types":"^7.10.3",
 		"vite": ">2.0.0-0"
 	},
 	"devDependencies": {
