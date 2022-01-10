@@ -3,7 +3,6 @@ import traverse from "@babel/traverse";
 import generate from "@babel/generator";
 import { Plugin } from "vite"; 
 import { importDeclaration, importDefaultSpecifier, stringLiteral, identifier } from "@babel/types";
-
 export default function vitePluginRequire(opts?: { fileRegex?: RegExp; log?: (...arg: any[]) => void }): Plugin {
 	const { fileRegex = /(.jsx?|.tsx?|.vue)$/, log } = opts || {};
 	return {
@@ -46,3 +45,4 @@ export default function vitePluginRequire(opts?: { fileRegex?: RegExp; log?: (..
 		},
 	};
 } 
+ 

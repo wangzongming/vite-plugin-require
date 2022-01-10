@@ -1,3 +1,6 @@
+##### 0.0.8
+
+    Support vite.config.ts 
 
 ##### 0.0.7
 
@@ -7,7 +10,7 @@
 ##### 0.0.5
 
     Fixed Other require keywords will be replaced
-    Support.vue file
+    Support .vue file
 
 ##### 0.0.3
 

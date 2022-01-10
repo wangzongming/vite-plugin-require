@@ -1,11 +1,12 @@
 {
 	"name": "vite-plugin-require",
-	"version": "0.0.7",
+	"version": "0.0.8",
 	"description": "can let vite projects to support require",
 	"author": "wangzongming",
 	"license": "MIT",
 	"repository": "https://github.com/wangzongming/vite-plugin-require",
 	"main": "dist/index.js",
+	"typings": "dist/index.d.ts",
 	"engines": {
 		"node": ">=8",
 		"npm": ">=5"

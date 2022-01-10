@@ -17,6 +17,7 @@
 		"moduleResolution": "node",
 		"resolveJsonModule": true,
 		"isolatedModules": false, 
+		"declaration": true,
 		"watch": true, 
 		"typeRoots": ["node_modules/@types"],
 		"types": ["node"] 
