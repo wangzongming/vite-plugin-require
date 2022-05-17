@@ -1,3 +1,9 @@
+##### 1.0.0
+
+    fix https://github.com/wangzongming/vite-plugin-require/issues/10
+
+    Support variable、 String splicing
+
 ##### 0.0.8
 
     Support vite.config.ts 

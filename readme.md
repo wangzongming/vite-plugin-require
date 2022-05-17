@@ -41,15 +41,30 @@ Suppose there are app.jsx and imgs folders in the src directory
 
 ```jsx
 function App() {
+    // The variable must be placed on the top   变量必须放置到最上面
+    // Do not use string templates  不可以使用字符串模板
+
+    const img2 = "./img/1.png";
+    const img3_1 = "./img/";
+    const img3_2 = "./1/";
+
     return (
         <div>
             <!-- Will actually convert to: "src/imgs/logo.png" -->
             <img src={require("./imgs/logo.png")} alt="logo1" />
+            <!-- You can use variables --> 
+            <img src={require(img2)} alt="logo1" />
+            <!-- You can use String splicing -->
+            <img src={require(img3_1 + img3_2 + ".png")} alt="logo1" /> 
         </div>
     );
 }
 export default App;
 ```
+
+## Upgrade log
+
+https://github.com/wangzongming/vite-plugin-require/blob/master/version-log.md
 
 Other deeper subdirectories
 
