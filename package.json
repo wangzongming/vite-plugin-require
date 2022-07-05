@@ -18,8 +18,9 @@
 		"@babel/generator": "^7.15.4",
 		"@babel/parser": "^7.15.6",
 		"@babel/traverse": "^7.15.4",
-		"@babel/types":"^7.10.3",
-		"vite": ">2.0.0-0"
+		"@babel/types": "^7.10.3",
+		"vite": ">2.0.0-0",
+		"vue-loader": "15.9.8"
 	},
 	"devDependencies": {
 		"typescript": "^4.4.3",
