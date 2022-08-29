@@ -84,3 +84,20 @@ function Page() {
 }
 export default Page;
 ```
+
+## Alias 
+
+vite.config.js
+
+```
+resolve: {
+  alias: [ 
+    { find: "@imgs", replacement: path.resolve(__dirname, "./src/imgs/") },
+  ],
+},
+```
+
+page.jsx
+```
+<img src={require("@imgs/logo.png")} alt="" />
+```
