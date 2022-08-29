@@ -66,7 +66,8 @@ export default App;
 
 https://github.com/wangzongming/vite-plugin-require/blob/master/version-log.md
 
-Other deeper subdirectories
+
+## Other deeper subdirectories
 
 file path: `src/views/Page1/index.jsx`
 
