@@ -16,7 +16,7 @@ export default function vitePluginRequire(opts?: { fileRegex?: RegExp; log?: (..
 				const ast = parser.parse(code, {
 					sourceType: "module",
 					plugins,
-				});
+				}); 
 				traverse(ast, {
 					enter(path) {
 						if (path.isIdentifier({ name: "require" })) {
