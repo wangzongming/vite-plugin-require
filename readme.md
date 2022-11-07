@@ -102,3 +102,9 @@ page.jsx
 ```
 <img src={require("@imgs/logo.png")} alt="" />
 ```
+
+
+## FAQ
+
+### 1、vitePluginRequire is not a function
+look  https://zhidao.baidu.com/question/1119865069850306739.html
