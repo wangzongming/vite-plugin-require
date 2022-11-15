@@ -78,7 +78,7 @@ export default function vitePluginRequire(opts?: { fileRegex?: RegExp; log?: (..
 								path.node.name = "";
 								if (stringVal) {
 									// Insert import at the top to pack resources when vite packs
-									const realPath = `vitePluginRequire_${new Date().getTime()}_${parseInt(Math.random() * 10000 + 100 + "")}`;
+									const realPath = `vitePluginRequire_${new Date().getTime()}_${parseInt(Math.random() * 100000000 + 100 + "")}`;
 									const importAst = importDeclaration([importDefaultSpecifier(identifier(realPath))], stringLiteral(stringVal as string));
 									ast.program.body.unshift(importAst as any);
 									switch (arg?.type) {
