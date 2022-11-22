@@ -15,8 +15,9 @@ export default function vitePluginRequire(opts?: { fileRegex?: RegExp; log?: (..
 				let plugins: parser.ParserPlugin[] = /(.vue)$/.test(id) ? [require("vue-loader")] : ["jsx"];
 				const ast = parser.parse(code, {
 					sourceType: "module",
-					plugins,
-				}); 
+					// 更新版本的 babel/parse 只能配置为二维数组，第二个选项为配置
+					plugins: [plugins] as any, 
+				});
 				traverse(ast, {
 					enter(path) {
 						if (path.isIdentifier({ name: "require" })) {
@@ -94,7 +95,7 @@ export default function vitePluginRequire(opts?: { fileRegex?: RegExp; log?: (..
 											break;
 										case "BinaryExpression":
 											// 直接改成变量
-											(path.container as Record<string, any>).arguments[0] = identifier(realPath)
+											(path.container as Record<string, any>).arguments[0] = identifier(realPath);
 											break;
 										default:
 											throw `Unsupported type: ${arg?.type}`;
