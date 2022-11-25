@@ -2,9 +2,16 @@ import * as parser from "@babel/parser";
 import traverse from "@babel/traverse";
 import generate from "@babel/generator";
 import { Plugin } from "vite";
-import { importDeclaration, importDefaultSpecifier, stringLiteral, declareVariable, identifier, BinaryExpression } from "@babel/types";
-export default function vitePluginRequire(opts?: { fileRegex?: RegExp; log?: (...arg: any[]) => void }): Plugin {
-	const { fileRegex = /(.jsx?|.tsx?|.vue)$/, log } = opts || {};
+import { importDeclaration, importDefaultSpecifier, stringLiteral, identifier, newExpression, expressionStatement, memberExpression, BinaryExpression, ExpressionStatement } from "@babel/types";
+export default function vitePluginRequire(opts?: {
+	fileRegex?: RegExp;
+	log?: (...arg: any[]) => void;
+	// 转换方式，默认用 import 方式替换，可使用 https://vitejs.cn/guide/assets.html#new-url-url-import-meta-url 方式
+	// importMetaUrl | import
+	translateType?: "importMetaUrl" | "import";
+}): Plugin {
+	const { fileRegex = /(.jsx?|.tsx?|.vue)$/, log, translateType = "import" } = opts || {};
+	// console.log(variable)
 	return {
 		name: "vite-plugin-require",
 		async transform(code: string, id: string) {
@@ -16,7 +23,7 @@ export default function vitePluginRequire(opts?: { fileRegex?: RegExp; log?: (..
 				const ast = parser.parse(code, {
 					sourceType: "module",
 					// 更新版本的 babel/parse 只能配置为二维数组，第二个选项为配置
-					plugins: [plugins] as any, 
+					plugins: [plugins] as any,
 				});
 				traverse(ast, {
 					enter(path) {
@@ -73,36 +80,68 @@ export default function vitePluginRequire(opts?: { fileRegex?: RegExp; log?: (..
 										binaryExpressionLoopFn(arg.left);
 										binaryExpressionLoopFn(arg.right);
 										break;
+									case "MemberExpression":
+										// requre(new Url())
+										break;
 									default:
 										throw `Unsupported type: ${arg?.type}`;
 								}
 								path.node.name = "";
 								if (stringVal) {
 									// Insert import at the top to pack resources when vite packs
-									const realPath = `vitePluginRequire_${new Date().getTime()}_${parseInt(Math.random() * 100000000 + 100 + "")}`;
-									const importAst = importDeclaration([importDefaultSpecifier(identifier(realPath))], stringLiteral(stringVal as string));
-									ast.program.body.unshift(importAst as any);
-									switch (arg?.type) {
-										case "StringLiteral":
-											(path.container as Record<string, any>).arguments[0].value = realPath;
-											if ((path.container as Record<string, any>).arguments[0].extra) {
-												(path.container as Record<string, any>).arguments[0].extra.raw = realPath;
-												(path.container as Record<string, any>).arguments[0].extra.rawValue = realPath;
-											}
-											break;
-										case "Identifier":
-											(path.container as Record<string, any>).arguments[0].name = realPath;
-											break;
-										case "BinaryExpression":
-											// 直接改成变量
-											(path.container as Record<string, any>).arguments[0] = identifier(realPath);
-											break;
-										default:
-											throw `Unsupported type: ${arg?.type}`;
+									let realPath: string | ExpressionStatement = `vitePluginRequire_${new Date().getTime()}_${parseInt(Math.random() * 100000000 + 100 + "")}`;
+									if (translateType === "import") {
+										const importAst = importDeclaration([importDefaultSpecifier(identifier(realPath))], stringLiteral(stringVal as string));
+										ast.program.body.unshift(importAst as any);
+
+										switch (arg?.type) {
+											case "StringLiteral":
+												(path.container as Record<string, any>).arguments[0].value = realPath;
+												if ((path.container as Record<string, any>).arguments[0].extra) {
+													(path.container as Record<string, any>).arguments[0].extra.raw = realPath;
+													(path.container as Record<string, any>).arguments[0].extra.rawValue = realPath;
+												}
+												break;
+											case "Identifier":
+												(path.container as Record<string, any>).arguments[0].name = realPath;
+												break;
+											case "BinaryExpression":
+												// 直接改成变量
+												(path.container as Record<string, any>).arguments[0] = identifier(realPath);
+												break;
+											default:
+												throw `Unsupported type: ${arg?.type}`;
+										}
+									} else if (translateType === "importMetaUrl") {
+										// 改为 import.meta.url ...
+										const metaObj = memberExpression(memberExpression(identifier("import"), identifier("meta")), identifier("url"));
+										const importAst = newExpression(identifier("URL"), [stringLiteral(stringVal), metaObj]);
+										const hrefObj = expressionStatement(memberExpression(importAst, identifier("href")));
+										const strCode = generate(hrefObj as any, {}).code.replace(/\;$/, '');
+										// log("importAst", strCode);
+
+										switch (arg?.type) {
+											case "StringLiteral": 
+												(path.container as Record<string, any>).arguments[0].value = strCode;
+												if ((path.container as Record<string, any>).arguments[0].extra) {
+													(path.container as Record<string, any>).arguments[0].extra.raw = strCode;
+													(path.container as Record<string, any>).arguments[0].extra.rawValue = strCode;
+												}
+												break;
+											case "Identifier":
+												(path.container as Record<string, any>).arguments[0].name = strCode;
+												break;
+											case "BinaryExpression":
+												// 直接改成变量
+												(path.container as Record<string, any>).arguments[0] = identifier(strCode);
+												break;
+											default:
+												throw `Unsupported type: ${arg?.type}`;
+										}
 									}
 								}
 							}
-						}
+						} 
 					},
 				});
 				const output = generate(ast, {});

@@ -13,7 +13,7 @@ Install and use to achieve painless support `require`
 ```
 npm i vite-plugin-require | yarn add vite-plugin-require
 ```
-
+---
 ## Usage
 
 ```ts
@@ -25,6 +25,11 @@ export default {
 			// @fileRegex RegExp
 			// optional：default file processing rules are as follows
 			// fileRegex:/(.jsx?|.tsx?|.vue)$/
+
+            // Conversion mode. The default mode is import
+            // importMetaUrl | import
+            // importMetaUrl see https://vitejs.cn/guide/assets.html#new-url-url-import-meta-url 
+            // translateType: "importMetaUrl" | "import";
 		}),
 	],
 };
@@ -35,6 +40,7 @@ export default {
 The entire project directory is the root directory。
 It doesn't matter how you quote it.
 
+---
 ## Demo
 
 Suppose there are app.jsx and imgs folders in the src directory
@@ -52,21 +58,21 @@ function App() {
         <div>
             <!-- Will actually convert to: "src/imgs/logo.png" -->
             <img src={require("./imgs/logo.png")} alt="logo1" />
-            <!-- You can use variables --> 
+            <!-- You can use variables -->
             <img src={require(img2)} alt="logo1" />
             <!-- You can use String splicing -->
-            <img src={require(img3_1 + img3_2 + ".png")} alt="logo1" /> 
+            <img src={require(img3_1 + img3_2 + ".png")} alt="logo1" />
         </div>
     );
 }
 export default App;
 ```
-
+---
 ## Upgrade log
 
 https://github.com/wangzongming/vite-plugin-require/blob/master/version-log.md
 
-
+---
 ## Other deeper subdirectories
 
 file path: `src/views/Page1/index.jsx`
@@ -77,34 +83,56 @@ function Page() {
         <div>
             <!-- Will actually convert to: "src/imgs/logo.png" -->
             <img src={require("../../../imgs/logo.png")} alt="logo1" />
-            
+
             <!-- Will actually convert to: "/src/views/Page1/imgs/logo.png" -->
-			<img src={require("./imgs/logo.png")} alt="logo1" /> 
+			<img src={require("./imgs/logo.png")} alt="logo1" />
         </div>
     );
 }
 export default Page;
 ```
+---
 
-## Alias 
+## translateType
+
+`translateType: "import"`
+
+By default, plug-ins place all `require` references at the top and import them using import.
+
+
+`translateType: "importMetaUrl"` 
+In this mode, the plugin uses ` import.meta.url ` instead of`require` 
+Therefore, on-demand loading can be implemented in this mode. eg:
+```
+let imgUrl = process.env.NODE_ENV !== "development" ? require("../imgs/logo.png") : null;
+
+// some code...
+
+see: https://github.com/wangzongming/vite-plugin-require/issues/28
+
+```
+
+---
+## Alias
 
 vite.config.js
 
 ```
 resolve: {
-  alias: [ 
+  alias: [
     { find: "@imgs", replacement: path.resolve(__dirname, "./src/imgs/") },
   ],
 },
 ```
 
 page.jsx
+
 ```
 <img src={require("@imgs/logo.png")} alt="" />
 ```
-
-
+---
 ## FAQ
 
 ### 1、vitePluginRequire is not a function
-look  https://zhidao.baidu.com/question/1119865069850306739.html
+
+look https://zhidao.baidu.com/question/1119865069850306739.html
