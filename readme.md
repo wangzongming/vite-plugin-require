@@ -107,10 +107,22 @@ Therefore, on-demand loading can be implemented in this mode. eg:
 let imgUrl = process.env.NODE_ENV !== "development" ? require("../imgs/logo.png") : null;
 
 // some code...
+```
 
-see: https://github.com/wangzongming/vite-plugin-require/issues/28
+ps： `translateType: "importMetaUrl"` Code is not deleted in mode。
+
+Only the following requirements can be implemented.
+
+detail see: https://github.com/wangzongming/vite-plugin-require/issues/28
+```
+let imgUrl = process.env.NODE_ENV !== "development" ? require("../imgs/logo.png") : null;
+
+return <>
+    { imgUrl ? <img src={imgUrl}/> : null }
+</>
 
 ```
+
 
 ---
 ## Alias
