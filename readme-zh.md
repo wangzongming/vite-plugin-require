@@ -2,30 +2,32 @@
 
 [![npm](https://img.shields.io/npm/v/vite-plugin-require.svg)](https://www.npmjs.com/package/vite-plugin-require)
 
-> can let vite projects to support `require` [vite-plugin-require](https://www.npmjs.com/package/vite-plugin-require)
+> 让 vite 项目无痛支持 `require("xxx")` [vite-plugin-require](https://www.npmjs.com/package/vite-plugin-require)
 
-Install and use to achieve painless support `require("xxx")`
+安装即可实现项目支持 `require` 语法，大部分情况下无需配置。
+
 
 ---
 -  [中文文档](https://github.com/wangzongming/vite-plugin-require)
 -  [English](https://github.com/wangzongming/vite-plugin-require/blob/master/readme-zh.md)
 ---
 
-## Adaptive
+## 适配的 vite 版本
 
 - √ vite2
 - √ vite3
 - √ vite4
+
 ---
-## Install
+
+## 安装
 
 ```
 npm i vite-plugin-require | yarn add vite-plugin-require
 ```
 
-
 ---
-## Usage
+## 使用
 
 ```js
 import vitePluginRequire from "vite-plugin-require";
@@ -33,32 +35,31 @@ import vitePluginRequire from "vite-plugin-require";
 export default {
 	plugins: [
 		vitePluginRequire(),
-
-        // vite4
+        
+        // vite4 需要像下面这样写
         // vitePluginRequire.default()
 	],
 };
 ```
 ---
-## options
+## 配置项
 
-Two options，which is not required in most cases
+两个选项，这在大多数情况下不是必需的
 
-#### fileRegex
+### fileRegex
 
-File to be converted, default configuration: /(.jsx? |.tsx? |.vue)$/
+需要转换的文件，默认配置：/(.jsx?|.tsx?|.vue)$/
 
 ``` js
 vitePluginRequire({ fileRegex:/(.jsx?|.tsx?|.vue)$/ })
 ```
 
 
-#### translateType
+### translateType
 
-Conversion mode. The default mode is "import"
+转换模式。默认模式为“import”。
 
-
-"import" is resource introductio
+"import" 就是寻常的资源导入
 
 "importMetaUrl" see https://vitejs.cn/guide/assets.html#new-url-url-import-meta-url 
 
@@ -66,27 +67,29 @@ Conversion mode. The default mode is "import"
 vitePluginRequire({ translateType: "import" })
 ``` 
 
-
 `translateType: "import"`
 
-By default, plug-ins place all `require` references at the top and import them using import.
+默认情况下，插件将所有 `require` 引用路径复制顶部，并使用 `import` 导入它们。
 
 
 `translateType: "importMetaUrl"` 
-In this mode, the plugin uses ` import.meta.url ` instead of`require` 
-Therefore, on-demand loading can be implemented in this mode. eg:
+
+在这种模式下, 插件使用 ` import.meta.url ` 去转换 `require` 。 
+
+因此，该模式可以实现按需加载。例如:
 ```
 let imgUrl = process.env.NODE_ENV !== "development" ? require("../imgs/logo.png") : null;
 
 // some code...
 ```
 
-ps： `translateType: "importMetaUrl"` Code is not deleted in mode。
+ps： `translateType: "importMetaUrl"` 在这种模式下，代码不会被删除。
 
-Only the following requirements can be implemented.
+只能满足如下要求：  https://github.com/wangzongming/vite-plugin-require/issues/28
 
-detail see: https://github.com/wangzongming/vite-plugin-require/issues/28
 ```
+注意注意注意：imgUrl 存在才进行渲染 img ，一定需要是这个顺序。而不是在 src 中进行判断，如：src={xx ? require("../imgs/logo.png") : null}
+
 let imgUrl = process.env.NODE_ENV !== "development" ? require("../imgs/logo.png") : null;
 
 return <>
@@ -95,34 +98,32 @@ return <>
 
 ```
 
+## 根目录在哪里?
 
-## Where is the root directory？
-
-The entire project directory is the root directory。
-It doesn't matter how you quote it.
+整个项目目录是根目录。
+对于资源你怎么引用并不重要。
 
 ---
-## Demo
+## 案例
 
-Suppose there are app.jsx and imgs folders in the src directory
+假设 src 目录下有 app.jsx 和 imgs 文件夹
 
-```jsx
+```jsx 
 // app.jsx
 function App() {
-    // The variable must be placed on the top   变量必须放置到最上面
-    // Do not use string templates  不可以使用字符串模板
-
+    // 变量必须放置到最上面
+    // 并且不可以使用字符串模板
     const img2 = "./img/1.png";
     const img3_1 = "./img/";
     const img3_2 = "./1/";
 
     return (
         <div>
-            <!-- Will actually convert to: "src/imgs/logo.png" -->
+            <!-- 转换后: "src/imgs/logo.png" -->
             <img src={require("./imgs/logo.png")} alt="logo1" />
-            <!-- You can use variables -->
+            <!-- 可以使用变量 -->
             <img src={require(img2)} alt="logo1" />
-            <!-- You can use String splicing -->
+            <!-- 可以使用字符串拼接 -->
             <img src={require(img3_1 + img3_2 + ".png")} alt="logo1" />
         </div>
     );
@@ -130,26 +131,28 @@ function App() {
 export default App;
 ```
 ---
-## Upgrade log
+## 升级日志
+
+*保证每次的升级都不是破坏性的
 
 https://github.com/wangzongming/vite-plugin-require/blob/master/version-log.md
 
 ---
-## Other deeper subdirectories
-img1： src/imgs/logo.png
+## 复杂目录嵌套
 
-img2：src/views/Page1/imgs/logo.png
- 
+图片1： src/imgs/logo.png
+
+图片2：src/views/Page1/imgs/logo.png
 
 ```jsx
 // src/views/Page1/index.jsx
 function Page() {
     return (
         <div>
-            <!-- Will actually convert to: "src/imgs/logo.png" -->
+            <!-- 转换为: "src/imgs/logo.png" -->
             <img src={require("../../../imgs/logo.png")} alt="logo1" />
 
-            <!-- Will actually convert to: "/src/views/Page1/imgs/logo.png" -->
+            <!-- 转换为: "/src/views/Page1/imgs/logo.png" -->
 			<img src={require("./imgs/logo.png")} alt="logo1" />
         </div>
     );
@@ -157,8 +160,9 @@ function Page() {
 export default Page;
 ```
 ---
-  
-## Alias
+ 
+ 
+## 别名设置
 
 vite.config.js
 
