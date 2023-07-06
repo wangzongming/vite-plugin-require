@@ -21,15 +21,22 @@ import vitePluginRequire from "vite-plugin-require";
 
 export default {
 	plugins: [
+        // Two options，which is not required in most cases
 		vitePluginRequire({
-			// @fileRegex RegExp
-			// optional：default file processing rules are as follows
-			// fileRegex:/(.jsx?|.tsx?|.vue)$/
+			/**
+             * @param fileRegex RegExp
+             * optional：default file processing rules are as follows
+             * default: /(.jsx?|.tsx?|.vue)$/
+            */ 
+			// fileRegex:/(.jsx?|.tsx?|.vue)$/,
 
-            // Conversion mode. The default mode is import
-            // importMetaUrl | import
-            // importMetaUrl see https://vitejs.cn/guide/assets.html#new-url-url-import-meta-url 
-            // translateType: "importMetaUrl" | "import";
+            /**
+             * @param translateType "importMetaUrl" | "import"
+             * Conversion mode. The default mode is "import"
+             * importMetaUrl see https://vitejs.cn/guide/assets.html#new-url-url-import-meta-url 
+             * default: / "import"
+            */  
+            // translateType: "import"
 		}),
 	],
 };
