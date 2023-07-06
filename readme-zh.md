@@ -8,8 +8,8 @@
 
 
 ---
--  [中文文档](https://github.com/wangzongming/vite-plugin-require)
--  [English](https://github.com/wangzongming/vite-plugin-require/blob/master/readme-zh.md)
+-  [中文文档](https://github.com/wangzongming/vite-plugin-require/blob/master/readme-zh.md)
+-  [English](https://github.com/wangzongming/vite-plugin-require)
 ---
 
 ## 适配的 vite 版本
