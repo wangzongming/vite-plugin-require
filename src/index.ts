@@ -65,6 +65,7 @@ export default function vitePluginRequire(opts?: {
 														Identifier: (path) => {
 															// 这里不处理各种变量赋值，只考虑唯一变量
 															if (path.node.name === IdentifierName) {
+																log(path);
 																if (!Array.isArray(path.container) && (path.container as any).init?.type === "StringLiteral") {
 																	// log((path.container as any).init.value);
 																	stringVal += (path.container as any).init.value;
@@ -72,6 +73,23 @@ export default function vitePluginRequire(opts?: {
 															}
 														},
 													});
+												} else if (lOr.type === "MemberExpression") { 
+													// 这里不处理各种变量赋值，只考虑唯一变量
+													if (lOr.property.type === "Identifier") {
+														const IdentifierName = lOr.property.name;
+														traverse(ast, {
+															Identifier: (path) => {
+																// 这里不处理各种变量赋值，只考虑唯一变量
+																if (path.node.name === IdentifierName) {
+																	// log(path)
+																	if (!Array.isArray(path.container) && (path.container as any).init?.type === "StringLiteral") {
+																		// log((path.container as any).init.value);
+																		stringVal += (path.container as any).init.value;
+																	}
+																}
+															},
+														});
+													}
 												} else {
 													throw `不支持的: BinaryExpression 组成类型 ${lOr.type}`;
 												}
@@ -121,7 +139,7 @@ export default function vitePluginRequire(opts?: {
 										// log("importAst", strCode);
 
 										switch (arg?.type) {
-											case "StringLiteral": 
+											case "StringLiteral":
 												(path.container as Record<string, any>).arguments[0].value = strCode;
 												if ((path.container as Record<string, any>).arguments[0].extra) {
 													(path.container as Record<string, any>).arguments[0].extra.raw = strCode;
@@ -141,7 +159,7 @@ export default function vitePluginRequire(opts?: {
 									}
 								}
 							}
-						} 
+						}
 					},
 				});
 				const output = generate(ast, {});

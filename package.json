@@ -1,6 +1,6 @@
 {
 	"name": "vite-plugin-require",
-	"version": "1.1.10",
+	"version": "1.1.11",
 	"description": "can let vite projects to support require",
 	"author": "wangzongming",
 	"license": "MIT",
@@ -12,6 +12,7 @@
 		"npm": ">=5"
 	},
 	"scripts": {
+		"start": "tsc -w -p .",
 		"build": "tsc -p ."
 	},
 	"peerDependencies": {
