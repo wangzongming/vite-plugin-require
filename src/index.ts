@@ -14,10 +14,8 @@ export default function vitePluginRequire(opts?: {
 	let sourcemap: boolean; 
 	return {
 		name: "vite-plugin-require",
-		configResolved(resolvedConfig) {
-			// 存储最终解析的配置
-			sourcemap = resolvedConfig.build.sourcemap as boolean;
-			// log && log(sourcemap);
+		configResolved(resolvedConfig) { 
+			sourcemap = resolvedConfig.build.sourcemap as boolean; 
 		},
 		async transform(code: string, id: string) {
 			//  Exclude files in node_modules
