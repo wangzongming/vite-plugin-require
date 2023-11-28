@@ -1,6 +1,6 @@
 {
 	"name": "vite-plugin-require",
-	"version": "1.1.11",
+	"version": "1.1.12",
 	"description": "can let vite projects to support require",
 	"author": "wangzongming",
 	"license": "MIT",

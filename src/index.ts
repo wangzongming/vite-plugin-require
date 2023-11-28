@@ -11,13 +11,19 @@ export default function vitePluginRequire(opts?: {
 	translateType?: "importMetaUrl" | "import";
 }): Plugin {
 	const { fileRegex = /(.jsx?|.tsx?|.vue)$/, log, translateType = "import" } = opts || {};
-	// console.log(variable)
+	let sourcemap: boolean; 
 	return {
 		name: "vite-plugin-require",
+		configResolved(resolvedConfig) {
+			// 存储最终解析的配置
+			sourcemap = resolvedConfig.build.sourcemap as boolean;
+			// log && log(sourcemap);
+		},
 		async transform(code: string, id: string) {
 			//  Exclude files in node_modules
 			if (/\/node_modules\//g.test(id)) return;
 			let newCode = code;
+			let newMap = null; // 没有更改源代码时为 null
 			if (fileRegex.test(id)) {
 				let plugins: parser.ParserPlugin[] = /(.vue)$/.test(id) ? [require("vue-loader")] : ["jsx"];
 				const ast = parser.parse(code, {
@@ -73,7 +79,7 @@ export default function vitePluginRequire(opts?: {
 															}
 														},
 													});
-												} else if (lOr.type === "MemberExpression") { 
+												} else if (lOr.type === "MemberExpression") {
 													// 这里不处理各种变量赋值，只考虑唯一变量
 													if (lOr.property.type === "Identifier") {
 														const IdentifierName = lOr.property.name;
@@ -162,13 +168,17 @@ export default function vitePluginRequire(opts?: {
 						}
 					},
 				});
-				const output = generate(ast, {});
+				const output = generate(ast, { sourceMaps: true, sourceFileName: code  });
 				newCode = output.code;
+				if(sourcemap){ 
+					newMap = output.map;
+				}
+				// log && log(newMap);
 			}
 			return {
 				code: newCode,
-				// https://rollupjs.org/guide/en/#thisgetcombinedsourcemap
-				map: null,
+				// https://rollupjs.org/guide/en/#thisgetcombinedsourcemap 
+				map: newMap,
 			};
 		},
 	};

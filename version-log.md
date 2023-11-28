@@ -1,4 +1,9 @@
 
+
+##### 1.1.12
+
+    fix https://github.com/wangzongming/vite-plugin-require/issues/35
+
 ##### 1.1.11
 
     fix https://github.com/wangzongming/vite-plugin-require/issues/33
