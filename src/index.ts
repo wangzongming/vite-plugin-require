@@ -11,11 +11,11 @@ export default function vitePluginRequire(opts?: {
 	translateType?: "importMetaUrl" | "import";
 }): Plugin {
 	const { fileRegex = /(.jsx?|.tsx?|.vue)$/, log, translateType = "import" } = opts || {};
-	let sourcemap: boolean; 
+	let sourcemap: boolean;
 	return {
 		name: "vite-plugin-require",
-		configResolved(resolvedConfig) { 
-			sourcemap = resolvedConfig.build.sourcemap as boolean; 
+		configResolved(resolvedConfig) {
+			sourcemap = resolvedConfig.build.sourcemap as boolean;
 		},
 		async transform(code: string, id: string) {
 			//  Exclude files in node_modules
@@ -69,7 +69,7 @@ export default function vitePluginRequire(opts?: {
 														Identifier: (path) => {
 															// 这里不处理各种变量赋值，只考虑唯一变量
 															if (path.node.name === IdentifierName) {
-																log(path);
+																// log(path);
 																if (!Array.isArray(path.container) && (path.container as any).init?.type === "StringLiteral") {
 																	// log((path.container as any).init.value);
 																	stringVal += (path.container as any).init.value;
@@ -166,9 +166,13 @@ export default function vitePluginRequire(opts?: {
 						}
 					},
 				});
-				const output = generate(ast, { sourceMaps: true, sourceFileName: code  });
+				const output = generate(ast, {
+					sourceMaps: true,
+					//  sourceFileName: code  
+					sourceFileName: id
+				}, code);
 				newCode = output.code;
-				if(sourcemap){ 
+				if (sourcemap) {
 					newMap = output.map;
 				}
 				// log && log(newMap);
