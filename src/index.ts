@@ -14,8 +14,14 @@ export default function vitePluginRequire(opts?: {
 	let sourcemap: boolean;
 	return {
 		name: "vite-plugin-require",
-		configResolved(resolvedConfig) {
-			sourcemap = resolvedConfig.build.sourcemap as boolean;
+		configResolved(resolvedConfig) { 
+			// dev model default true
+			const isDev = resolvedConfig.env.MODE === "development"; 
+			if (isDev){
+				sourcemap = true;
+			}else{ 
+				sourcemap = resolvedConfig.build.sourcemap as boolean;
+			}
 		},
 		async transform(code: string, id: string) {
 			//  Exclude files in node_modules
