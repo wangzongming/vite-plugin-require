@@ -4,6 +4,11 @@
 
 Install and use to achieve painless support `require("xxx")`
 
+
+**If the project is useful to you, please click on star!**
+
+
+
 ---
 -  [中文文档](https://github.com/wangzongming/vite-plugin-require/blob/master/readme-zh.md)
 -  [English](https://github.com/wangzongming/vite-plugin-require)

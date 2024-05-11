@@ -6,6 +6,7 @@
 
 安装即可实现项目支持 `require` 语法，大部分情况下无需配置。
 
+**如果项目对你有用的话，请点个star吧！**
 
 ---
 -  [中文文档](https://github.com/wangzongming/vite-plugin-require/blob/master/readme-zh.md)
