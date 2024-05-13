@@ -194,6 +194,6 @@ export default {
 	],
 };
 ```
-## 微信交流群 
+## 微信交流群 | Wechat communication group 
 
 <img src="https://xiaomingio.top/img/i/2024/05/13/6641f99345733.jpg"/>
