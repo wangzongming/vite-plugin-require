@@ -14,11 +14,17 @@ Install and use to achieve painless support `require("xxx")`
 -  [English](https://github.com/wangzongming/vite-plugin-require)
 ---
 
+## 微信交流群 | Wechat communication group 
+
+<img src="https://xiaomingio.top/img/i/2024/05/13/6641f99345733.jpg"/>
+
 ## Adaptive
 
 - √ vite2
 - √ vite3
 - √ vite4
+- √ vite5
+  
 ---
 ## Install
 
@@ -31,13 +37,17 @@ npm i vite-plugin-require | yarn add vite-plugin-require
 ## Usage
 
 ```js
+import vue from '@vitejs/plugin-vue'
 import vitePluginRequire from "vite-plugin-require";
 
 export default {
 	plugins: [
+        vue(),
+
+        //  Must be placed after the vue plugin
 		vitePluginRequire(),
 
-        // vite4
+        // vite4、vite5
         // vitePluginRequire.default()
 	],
 };
@@ -192,7 +202,3 @@ export default {
 	],
 };
 ```
-
-## 微信交流群 | Wechat communication group 
-
-<img src="https://xiaomingio.top/img/i/2024/05/13/6641f99345733.jpg"/>

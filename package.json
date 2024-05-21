@@ -1,6 +1,6 @@
 {
 	"name": "vite-plugin-require",
-	"version": "1.1.14",
+	"version": "1.2.14",
 	"description": "can let vite projects to support require",
 	"author": "wangzongming",
 	"license": "MIT",
@@ -16,14 +16,15 @@
 		"build": "tsc -p ."
 	},
 	"peerDependencies": {
-		"vite": "latest"
+		"vite": "^2.0.0 || ^3.0.0 || ^4.0.0 || ^5.0.0"
 	},
 	"dependencies": {
-		"@babel/generator": "^7.15.4",
-		"@babel/parser": "^7.15.6",
-		"@babel/traverse": "^7.15.4",
-		"@babel/types": "^7.10.3",
-		"vue-loader": "^15.9.8",
+		"@babel/generator": "^7.24.5",
+		"@babel/parser": "^7.24.5",
+		"@babel/traverse": "^7.24.5",
+		"@babel/types": "^7.24.5",
+		"@vue/compiler-sfc": "^3.4.27",
+		"vue-loader": "^17.4.2", 
 		"webpack": "^4.46.0 || ^5.0.0"
 	},
 	"files": [
@@ -34,5 +35,5 @@
 		"require",
 		"vite-plugin",
 		"vite-plugin-require"
-	] 
+	]
 }

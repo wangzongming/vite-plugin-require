@@ -5,8 +5,9 @@
 	"watch": ["src"],
 	"isolatedModules": false,
 	"compilerOptions": { 
+		"jsx": "preserve",
         "module": "commonjs",
-        "lib": ["es2018"],
+        "lib": ["es2018", "DOM"],
         "outDir": "dist",
 		"noImplicitAny": true,
 		"removeComments": true,

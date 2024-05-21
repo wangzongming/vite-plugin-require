@@ -1,25 +1,26 @@
-import * as parser from "@babel/parser";
+
+import { parse } from '@babel/parser';
 import traverse from "@babel/traverse";
-import generate from "@babel/generator";
-import { Plugin } from "vite";
-import { importDeclaration, importDefaultSpecifier, stringLiteral, identifier, newExpression, expressionStatement, memberExpression, BinaryExpression, ExpressionStatement } from "@babel/types";
+import generate from "@babel/generator"; 
+import { importDeclaration, importDefaultSpecifier, stringLiteral, identifier, newExpression, expressionStatement, memberExpression, BinaryExpression, ExpressionStatement, Node } from "@babel/types";
+
 export default function vitePluginRequire(opts?: {
 	fileRegex?: RegExp;
 	log?: (...arg: any[]) => void;
 	// 转换方式，默认用 import 方式替换，可使用 https://vitejs.cn/guide/assets.html#new-url-url-import-meta-url 方式
 	// importMetaUrl | import
 	translateType?: "importMetaUrl" | "import";
-}): Plugin {
+}) {
 	const { fileRegex = /(.jsx?|.tsx?|.vue)$/, log, translateType = "import" } = opts || {};
 	let sourcemap: boolean;
 	return {
 		name: "vite-plugin-require",
-		configResolved(resolvedConfig) { 
+		configResolved(resolvedConfig: any) {
 			// dev model default true
-			const isDev = resolvedConfig.env.MODE === "development"; 
-			if (isDev){
+			const isDev = resolvedConfig.env.MODE === "development";
+			if (isDev) {
 				sourcemap = true;
-			}else{ 
+			} else {
 				sourcemap = resolvedConfig.build.sourcemap as boolean;
 			}
 		},
@@ -29,12 +30,15 @@ export default function vitePluginRequire(opts?: {
 			let newCode = code;
 			let newMap = null; // 没有更改源代码时为 null
 			if (fileRegex.test(id)) {
-				let plugins: parser.ParserPlugin[] = /(.vue)$/.test(id) ? [require("vue-loader")] : ["jsx"];
-				const ast = parser.parse(code, {
+				const isVueFile: Boolean = /(.vue)$/.test(id);
+				let plugins = isVueFile ? [[require("vue-loader")]] : ["jsx"]; 
+
+				const ast = parse(code, { 
 					sourceType: "module",
 					// 更新版本的 babel/parse 只能配置为二维数组，第二个选项为配置
-					plugins: [plugins] as any,
-				});
+					plugins: plugins as any, 
+				}) as any; 				 
+
 				traverse(ast, {
 					enter(path) {
 						if (path.isIdentifier({ name: "require" })) {
@@ -172,6 +176,7 @@ export default function vitePluginRequire(opts?: {
 						}
 					},
 				});
+
 				const output = generate(ast, {
 					sourceMaps: true,
 					//  sourceFileName: code  
@@ -181,7 +186,6 @@ export default function vitePluginRequire(opts?: {
 				if (sourcemap) {
 					newMap = output.map;
 				}
-				// log && log(newMap);
 			}
 			return {
 				code: newCode,

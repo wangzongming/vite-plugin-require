@@ -1,6 +1,10 @@
 
 
 
+##### 1.2.14
+
+    Dependent upgrade
+
 ##### 1.1.14
 
     fix https://github.com/wangzongming/vite-plugin-require/issues/35

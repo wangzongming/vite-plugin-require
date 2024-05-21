@@ -12,12 +12,16 @@
 -  [中文文档](https://github.com/wangzongming/vite-plugin-require/blob/master/readme-zh.md)
 -  [English](https://github.com/wangzongming/vite-plugin-require)
 ---
+## 微信交流群 | Wechat communication group 
+
+<img src="https://xiaomingio.top/img/i/2024/05/13/6641f99345733.jpg"/>
 
 ## 适配的 vite 版本
 
 - √ vite2
 - √ vite3
 - √ vite4
+- √ vite5
 
 ---
 
@@ -31,13 +35,17 @@ npm i vite-plugin-require | yarn add vite-plugin-require
 ## 使用
 
 ```js
+import vue from '@vitejs/plugin-vue'
 import vitePluginRequire from "vite-plugin-require";
 
 export default {
 	plugins: [
-		vitePluginRequire(),
+        vue(),
         
-        // vite4 需要像下面这样写
+        // 必须放在 vue 插件后面
+		vitePluginRequire(),
+         
+        // vite4、vite5 需要像下面这样写
         // vitePluginRequire.default()
 	],
 };
@@ -194,6 +202,4 @@ export default {
 	],
 };
 ```
-## 微信交流群 | Wechat communication group 
-
-<img src="https://xiaomingio.top/img/i/2024/05/13/6641f99345733.jpg"/>
+ 
