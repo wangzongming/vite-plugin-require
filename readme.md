@@ -14,9 +14,10 @@ Install and use to achieve painless support `require("xxx")`
 -  [English](https://github.com/wangzongming/vite-plugin-require)
 ---
 
-## 微信交流群 | Wechat communication group 
 
-<img src="https://xiaomingio.top/img/i/2024/05/13/6641f99345733.jpg"/>
+## 交流群 
+
+QQ 交流群: 854445223
 
 ## Adaptive
 
