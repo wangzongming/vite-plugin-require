@@ -14,6 +14,9 @@ Install and use to achieve painless support `require("xxx")`
 -  [English](https://github.com/wangzongming/vite-plugin-require)
 ---
 
+## 其他作品
+
+硬件接入AI最简单、最低成本的方案： https://github.com/wangzongming/esp-ai
 
 ## 交流群 
 
