@@ -1,5 +1,8 @@
 
 
+##### 1.2.17
+
+    fix https://github.com/wangzongming/vite-plugin-require/issues/52
 
 ##### 1.2.14
 
