@@ -20,7 +20,7 @@ Install and use to achieve painless support `require("xxx")`
 
 ## 交流群 
 
-QQ 交流群: 854445223
+QQ 交流群: 952051286
 
 ## Adaptive
 
