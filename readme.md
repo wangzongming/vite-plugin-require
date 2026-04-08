@@ -28,6 +28,7 @@ QQ 交流群: 854445223
 - √ vite3
 - √ vite4
 - √ vite5
+- √ vite6
   
 ---
 ## Install
