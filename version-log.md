@@ -1,5 +1,11 @@
 
 
+##### 1.3.0
+
+    feat https://github.com/wangzongming/vite-plugin-require/issues/57
+    Support ConditionalExpression and TemplateLiteral
+    Support vite7 and vite8
+
 ##### 1.2.17
 
     fix https://github.com/wangzongming/vite-plugin-require/issues/52

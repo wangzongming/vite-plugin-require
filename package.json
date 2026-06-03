@@ -1,6 +1,6 @@
 {
 	"name": "vite-plugin-require",
-	"version": "1.2.17",
+	"version": "1.3.0",
 	"description": "can let vite projects to support require",
 	"author": "wangzongming",
 	"license": "MIT",
@@ -16,7 +16,7 @@
 		"build": "tsc -p ."
 	},
 	"peerDependencies": {
-		"vite": "^2.0.0 || ^3.0.0 || ^4.0.0 || ^5.0.0 || ^6.0.0"
+		"vite": "^2.0.0 || ^3.0.0 || ^4.0.0 || ^5.0.0 || ^6.0.0 || ^7.0.0 || ^8.0.0"
 	},
 	"dependencies": {
 		"@babel/generator": "^7.24.5",
@@ -35,5 +35,11 @@
 		"require",
 		"vite-plugin",
 		"vite-plugin-require"
-	]
+	],
+	"devDependencies": {
+		"@types/babel__generator": "^7.6.8",
+		"@types/babel__traverse": "^7.20.6",
+		"@types/node": "^20.0.0",
+		"typescript": "^5.0.0"
+	}
 }

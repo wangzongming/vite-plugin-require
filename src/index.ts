@@ -1,8 +1,99 @@
 
 import { parse } from '@babel/parser';
-import traverse from "@babel/traverse";
+import traverse, { NodePath } from "@babel/traverse";
 import generate from "@babel/generator"; 
-import { importDeclaration, importDefaultSpecifier, stringLiteral, identifier, newExpression, expressionStatement, memberExpression, BinaryExpression, ExpressionStatement, Node } from "@babel/types";
+import { importDeclaration, importDefaultSpecifier, stringLiteral, identifier, newExpression, expressionStatement, memberExpression, ExpressionStatement, Node, Identifier, conditionalExpression, TemplateLiteral, ConditionalExpression, Expression } from "@babel/types";
+
+/** 从 AST 中解析出 require 参数的静态路径，无法解析时返回 null */
+function resolveStaticString(node: Node, ast: any): string | null {
+	switch (node.type) {
+		case "StringLiteral":
+			return node.value;
+		case "Identifier": {
+			let stringVal = "";
+			const IdentifierName = node.name;
+			traverse(ast, {
+				Identifier: (path: NodePath<Identifier>) => {
+					if (path.node.name === IdentifierName) {
+						if (!Array.isArray(path.container) && (path.container as any).init?.type === "StringLiteral") {
+							stringVal = (path.container as any).init.value;
+						}
+					}
+				},
+			});
+			return stringVal || null;
+		}
+		case "BinaryExpression": {
+			const left = resolveStaticString(node.left, ast);
+			const right = resolveStaticString(node.right, ast);
+			if (left === null || right === null) return null;
+			return left + right;
+		}
+		case "TemplateLiteral":
+			if (node.expressions.length > 0) return null;
+			return node.quasis.map((q) => q.value.cooked ?? q.value.raw).join("");
+		case "MemberExpression":
+			if (node.property.type === "Identifier") {
+				return resolveStaticString(node.property, ast);
+			}
+			return null;
+		default:
+			return null;
+	}
+}
+
+function genUniqueId() {
+	return `vitePluginRequire_${new Date().getTime()}_${parseInt(Math.random() * 100000000 + 100 + "")}`;
+}
+
+/** 将 require 参数替换为 import 导入的变量名 */
+function applyStaticImport(ast: any, container: Record<string, any>, stringVal: string) {
+	const realPath = genUniqueId();
+	const importAst = importDeclaration([importDefaultSpecifier(identifier(realPath))], stringLiteral(stringVal));
+	ast.program.body.unshift(importAst as any);
+	container.arguments[0] = identifier(realPath);
+}
+
+/** 将 require 参数替换为 new URL(..., import.meta.url).href 表达式 */
+function applyImportMetaUrlArg(container: Record<string, any>, argNode: Expression) {
+	const metaObj = memberExpression(memberExpression(identifier("import"), identifier("meta")), identifier("url"));
+	const urlExpr = newExpression(identifier("URL"), [argNode, metaObj]);
+	const hrefExpr = expressionStatement(memberExpression(urlExpr, identifier("href")));
+	const strCode = generate(hrefExpr as any, {}).code.replace(/\;$/, '');
+	container.arguments[0] = identifier(strCode);
+}
+
+/** 处理 ConditionalExpression：两分支均为静态路径时分别 import，否则回退 importMetaUrl */
+function handleConditionalExpression(ast: any, container: Record<string, any>, arg: ConditionalExpression, translateType: string) {
+	const consequentStr = resolveStaticString(arg.consequent, ast);
+	const alternateStr = resolveStaticString(arg.alternate, ast);
+
+	if (consequentStr && alternateStr && translateType === "import") {
+		const id1 = genUniqueId();
+		const id2 = genUniqueId();
+		ast.program.body.unshift(
+			importDeclaration([importDefaultSpecifier(identifier(id1))], stringLiteral(consequentStr)) as any,
+			importDeclaration([importDefaultSpecifier(identifier(id2))], stringLiteral(alternateStr)) as any,
+		);
+		container.arguments[0] = conditionalExpression(arg.test, identifier(id1), identifier(id2));
+	} else {
+		applyImportMetaUrlArg(container, arg);
+	}
+}
+
+/** 处理 TemplateLiteral：无插值时按静态路径处理，有插值时回退 importMetaUrl */
+function handleTemplateLiteral(ast: any, container: Record<string, any>, arg: TemplateLiteral, translateType: string) {
+	const staticStr = resolveStaticString(arg, ast);
+	if (staticStr) {
+		if (translateType === "import") {
+			applyStaticImport(ast, container, staticStr);
+		} else {
+			applyImportMetaUrlArg(container, stringLiteral(staticStr));
+		}
+	} else {
+		applyImportMetaUrlArg(container, arg);
+	}
+}
 
 export default function vitePluginRequire(opts?: {
 	fileRegex?: RegExp;
@@ -40,137 +131,40 @@ export default function vitePluginRequire(opts?: {
 				}) as any; 				 
 
 				traverse(ast, {
-					enter(path) {
+					enter(path: NodePath) {
 						if (path.isIdentifier({ name: "require" })) {
-							const arg = (path.container as Record<string, any>)?.arguments?.[0];
+							const container = path.container as Record<string, any>;
+							const arg = container?.arguments?.[0];
 
 							if (arg) {
-								let stringVal: string = "";
 								switch (arg?.type) {
 									case "StringLiteral":
-										stringVal = arg.value;
-										break;
 									case "Identifier":
-										const IdentifierName = arg.name;
-										traverse(ast, {
-											Identifier: (path) => {
-												// 这里不处理各种变量赋值，只考虑唯一变量
-												if (path.node.name === IdentifierName) {
-													if (!Array.isArray(path.container) && (path.container as any).init?.type === "StringLiteral") {
-														stringVal = (path.container as any).init.value;
-													}
-												}
-											},
-										});
-										break;
-									case "BinaryExpression":
-										const binaryExpressionLoopFn = (lOr: BinaryExpression["right"] | BinaryExpression["left"]) => {
-											if (lOr.type === "BinaryExpression") {
-												binaryExpressionLoopFn(lOr.left);
-												binaryExpressionLoopFn(lOr.right);
+									case "BinaryExpression": {
+										const stringVal = resolveStaticString(arg, ast);
+										if (stringVal) {
+											path.node.name = "";
+											if (translateType === "import") {
+												applyStaticImport(ast, container, stringVal);
 											} else {
-												// 只处理变量或者字符串
-												if (lOr.type === "StringLiteral") {
-													stringVal += lOr.value;
-												} else if (lOr.type === "Identifier") {
-													// 这里不处理各种变量赋值，只考虑唯一变量
-													const IdentifierName = lOr.name;
-													traverse(ast, {
-														Identifier: (path) => {
-															// 这里不处理各种变量赋值，只考虑唯一变量
-															if (path.node.name === IdentifierName) {
-																// log(path);
-																if (!Array.isArray(path.container) && (path.container as any).init?.type === "StringLiteral") {
-																	// log((path.container as any).init.value);
-																	stringVal += (path.container as any).init.value;
-																}
-															}
-														},
-													});
-												} else if (lOr.type === "MemberExpression") {
-													// 这里不处理各种变量赋值，只考虑唯一变量
-													if (lOr.property.type === "Identifier") {
-														const IdentifierName = lOr.property.name;
-														traverse(ast, {
-															Identifier: (path) => {
-																// 这里不处理各种变量赋值，只考虑唯一变量
-																if (path.node.name === IdentifierName) {
-																	// log(path)
-																	if (!Array.isArray(path.container) && (path.container as any).init?.type === "StringLiteral") {
-																		// log((path.container as any).init.value);
-																		stringVal += (path.container as any).init.value;
-																	}
-																}
-															},
-														});
-													}
-												} else {
-													throw `不支持的: BinaryExpression 组成类型 ${lOr.type}`;
-												}
+												applyImportMetaUrlArg(container, stringLiteral(stringVal));
 											}
-										};
-										binaryExpressionLoopFn(arg.left);
-										binaryExpressionLoopFn(arg.right);
+										}
+										break;
+									}
+									case "ConditionalExpression":
+										path.node.name = "";
+										handleConditionalExpression(ast, container, arg, translateType);
+										break;
+									case "TemplateLiteral":
+										path.node.name = "";
+										handleTemplateLiteral(ast, container, arg, translateType);
 										break;
 									case "MemberExpression":
-										// requre(new Url())
+										// require(new Url())
 										break;
 									default:
 										throw `Unsupported type: ${arg?.type}`;
-								}
-								path.node.name = "";
-								if (stringVal) {
-									// Insert import at the top to pack resources when vite packs
-									let realPath: string | ExpressionStatement = `vitePluginRequire_${new Date().getTime()}_${parseInt(Math.random() * 100000000 + 100 + "")}`;
-									if (translateType === "import") {
-										const importAst = importDeclaration([importDefaultSpecifier(identifier(realPath))], stringLiteral(stringVal as string));
-										ast.program.body.unshift(importAst as any);
-
-										switch (arg?.type) {
-											case "StringLiteral":
-												(path.container as Record<string, any>).arguments[0].value = realPath;
-												if ((path.container as Record<string, any>).arguments[0].extra) {
-													(path.container as Record<string, any>).arguments[0].extra.raw = realPath;
-													(path.container as Record<string, any>).arguments[0].extra.rawValue = realPath;
-												}
-												break;
-											case "Identifier":
-												(path.container as Record<string, any>).arguments[0].name = realPath;
-												break;
-											case "BinaryExpression":
-												// 直接改成变量
-												(path.container as Record<string, any>).arguments[0] = identifier(realPath);
-												break;
-											default:
-												throw `Unsupported type: ${arg?.type}`;
-										}
-									} else if (translateType === "importMetaUrl") {
-										// 改为 import.meta.url ...
-										const metaObj = memberExpression(memberExpression(identifier("import"), identifier("meta")), identifier("url"));
-										const importAst = newExpression(identifier("URL"), [stringLiteral(stringVal), metaObj]);
-										const hrefObj = expressionStatement(memberExpression(importAst, identifier("href")));
-										const strCode = generate(hrefObj as any, {}).code.replace(/\;$/, '');
-										// log("importAst", strCode);
-
-										switch (arg?.type) {
-											case "StringLiteral":
-												(path.container as Record<string, any>).arguments[0].value = strCode;
-												if ((path.container as Record<string, any>).arguments[0].extra) {
-													(path.container as Record<string, any>).arguments[0].extra.raw = strCode;
-													(path.container as Record<string, any>).arguments[0].extra.rawValue = strCode;
-												}
-												break;
-											case "Identifier":
-												(path.container as Record<string, any>).arguments[0].name = strCode;
-												break;
-											case "BinaryExpression":
-												// 直接改成变量
-												(path.container as Record<string, any>).arguments[0] = identifier(strCode);
-												break;
-											default:
-												throw `Unsupported type: ${arg?.type}`;
-										}
-									}
 								}
 							}
 						}
