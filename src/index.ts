@@ -5,27 +5,26 @@ import generate from "@babel/generator";
 import { importDeclaration, importDefaultSpecifier, stringLiteral, identifier, newExpression, expressionStatement, memberExpression, ExpressionStatement, Node, Identifier, conditionalExpression, TemplateLiteral, ConditionalExpression, Expression } from "@babel/types";
 
 /** 从 AST 中解析出 require 参数的静态路径，无法解析时返回 null */
-function resolveStaticString(node: Node, ast: any): string | null {
+function resolveStaticString(node: Node, path: NodePath): string | null {
 	switch (node.type) {
 		case "StringLiteral":
 			return node.value;
 		case "Identifier": {
-			let stringVal = "";
-			const IdentifierName = node.name;
-			traverse(ast, {
-				Identifier: (path: NodePath<Identifier>) => {
-					if (path.node.name === IdentifierName) {
-						if (!Array.isArray(path.container) && (path.container as any).init?.type === "StringLiteral") {
-							stringVal = (path.container as any).init.value;
-						}
-					}
-				},
-			});
-			return stringVal || null;
+			// 按当前作用域查找绑定，避免同名变量被文件中最后一个声明覆盖
+			const binding = path.scope.getBinding(node.name);
+			if (!binding) return null;
+			const bindingPath = binding.path;
+			if (bindingPath.isVariableDeclarator()) {
+				const init = bindingPath.node.init;
+				if (init?.type === "StringLiteral") {
+					return init.value;
+				}
+			}
+			return null;
 		}
 		case "BinaryExpression": {
-			const left = resolveStaticString(node.left, ast);
-			const right = resolveStaticString(node.right, ast);
+			const left = resolveStaticString(node.left, path);
+			const right = resolveStaticString(node.right, path);
 			if (left === null || right === null) return null;
 			return left + right;
 		}
@@ -34,7 +33,7 @@ function resolveStaticString(node: Node, ast: any): string | null {
 			return node.quasis.map((q) => q.value.cooked ?? q.value.raw).join("");
 		case "MemberExpression":
 			if (node.property.type === "Identifier") {
-				return resolveStaticString(node.property, ast);
+				return resolveStaticString(node.property, path);
 			}
 			return null;
 		default:
@@ -64,9 +63,9 @@ function applyImportMetaUrlArg(container: Record<string, any>, argNode: Expressi
 }
 
 /** 处理 ConditionalExpression：两分支均为静态路径时分别 import，否则回退 importMetaUrl */
-function handleConditionalExpression(ast: any, container: Record<string, any>, arg: ConditionalExpression, translateType: string) {
-	const consequentStr = resolveStaticString(arg.consequent, ast);
-	const alternateStr = resolveStaticString(arg.alternate, ast);
+function handleConditionalExpression(ast: any, container: Record<string, any>, arg: ConditionalExpression, translateType: string, path: NodePath) {
+	const consequentStr = resolveStaticString(arg.consequent, path);
+	const alternateStr = resolveStaticString(arg.alternate, path);
 
 	if (consequentStr && alternateStr && translateType === "import") {
 		const id1 = genUniqueId();
@@ -82,8 +81,8 @@ function handleConditionalExpression(ast: any, container: Record<string, any>, a
 }
 
 /** 处理 TemplateLiteral：无插值时按静态路径处理，有插值时回退 importMetaUrl */
-function handleTemplateLiteral(ast: any, container: Record<string, any>, arg: TemplateLiteral, translateType: string) {
-	const staticStr = resolveStaticString(arg, ast);
+function handleTemplateLiteral(ast: any, container: Record<string, any>, arg: TemplateLiteral, translateType: string, path: NodePath) {
+	const staticStr = resolveStaticString(arg, path);
 	if (staticStr) {
 		if (translateType === "import") {
 			applyStaticImport(ast, container, staticStr);
@@ -141,7 +140,7 @@ export default function vitePluginRequire(opts?: {
 									case "StringLiteral":
 									case "Identifier":
 									case "BinaryExpression": {
-										const stringVal = resolveStaticString(arg, ast);
+										const stringVal = resolveStaticString(arg, path);
 										if (stringVal) {
 											path.node.name = "";
 											if (translateType === "import") {
@@ -154,11 +153,11 @@ export default function vitePluginRequire(opts?: {
 									}
 									case "ConditionalExpression":
 										path.node.name = "";
-										handleConditionalExpression(ast, container, arg, translateType);
+										handleConditionalExpression(ast, container, arg, translateType, path);
 										break;
 									case "TemplateLiteral":
 										path.node.name = "";
-										handleTemplateLiteral(ast, container, arg, translateType);
+										handleTemplateLiteral(ast, container, arg, translateType, path);
 										break;
 									case "MemberExpression":
 										// require(new Url())

@@ -1,3 +1,7 @@
+##### 1.4.0
+
+    fix https://github.com/wangzongming/vite-plugin-require/issues/58 
+    require(variable) picks the last variable with that name in the file, not the one in scope
 
 
 ##### 1.3.0
